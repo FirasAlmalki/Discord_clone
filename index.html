@@ -7,25 +7,24 @@
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
+    <div class="toast" id="appStatus" hidden>Loading</div>
+
     <main class="auth-view" id="authView">
       <section class="auth-panel">
         <div>
           <p class="eyebrow">MiniCord</p>
           <h1 id="authTitle">Welcome back</h1>
+          <p class="auth-copy">Chat with friends, groups, and voice rooms.</p>
         </div>
 
         <form class="auth-form" id="authForm">
           <label>
-            <span>Email</span>
-            <input id="emailInput" type="email" autocomplete="email" required />
+            <span>Username</span>
+            <input id="usernameInput" autocomplete="username" maxlength="24" required />
           </label>
           <label>
             <span>Password</span>
             <input id="passwordInput" type="password" autocomplete="current-password" minlength="6" required />
-          </label>
-          <label id="usernameField" hidden>
-            <span>Username</span>
-            <input id="usernameInput" autocomplete="username" maxlength="24" />
           </label>
           <p class="error-text" id="authError"></p>
           <button type="submit" id="authSubmit">Sign in</button>
@@ -40,13 +39,13 @@
           <div class="avatar big">M</div>
           <div>
             <strong id="meName">User</strong>
-            <small id="meEmail"></small>
+            <small id="meHandle">@user</small>
           </div>
           <button id="signOutButton">Sign out</button>
         </div>
 
         <form class="add-friend" id="friendForm">
-          <input id="friendInput" placeholder="friend username or email" required />
+          <input id="friendInput" placeholder="friend username" required />
           <button type="submit">Add</button>
         </form>
 

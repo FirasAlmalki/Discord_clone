@@ -1,6 +1,6 @@
 # MiniCord
 
-A tiny Discord-style web app with accounts, friends, DMs, group chats, realtime messages, and browser voice calls.
+A tiny Discord-style web app with username/password accounts, friends, DMs, group chats, realtime messages, and browser voice calls.
 
 ## Run it
 
@@ -17,5 +17,7 @@ Import this repository in Vercel. It builds into a static `dist` folder.
 - Install command: `npm install`
 
 ## Notes
+
+Users sign in with a username and password. Supabase still needs an email internally, so the app quietly creates one from the username. Turn off email confirmation in Supabase Auth while testing.
 
 Voice calls use browser microphone access and WebRTC. They need HTTPS, so they work best on the Vercel deployment. Supabase is used for auth, data, realtime messages, and voice-call signaling.

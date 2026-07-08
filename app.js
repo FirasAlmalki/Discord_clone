@@ -21,6 +21,7 @@ const state = {
 };
 
 const els = {
+  appStatus: document.querySelector("#appStatus"),
   authView: document.querySelector("#authView"),
   appView: document.querySelector("#appView"),
   authForm: document.querySelector("#authForm"),
@@ -28,12 +29,10 @@ const els = {
   authSubmit: document.querySelector("#authSubmit"),
   authToggle: document.querySelector("#authToggle"),
   authError: document.querySelector("#authError"),
-  emailInput: document.querySelector("#emailInput"),
   passwordInput: document.querySelector("#passwordInput"),
   usernameInput: document.querySelector("#usernameInput"),
-  usernameField: document.querySelector("#usernameField"),
   meName: document.querySelector("#meName"),
-  meEmail: document.querySelector("#meEmail"),
+  meHandle: document.querySelector("#meHandle"),
   signOutButton: document.querySelector("#signOutButton"),
   friendForm: document.querySelector("#friendForm"),
   friendInput: document.querySelector("#friendInput"),
@@ -65,8 +64,35 @@ function slug(value) {
   return text(value).toLowerCase().replace(/[^a-z0-9_]/g, "").slice(0, 24);
 }
 
+function authEmailFor(username) {
+  return `${slug(username)}@minicord.local`;
+}
+
 function initials(name) {
   return text(name).slice(0, 2).toUpperCase() || "?";
+}
+
+function showStatus(message) {
+  els.appStatus.textContent = message;
+  els.appStatus.hidden = false;
+}
+
+function hideStatus() {
+  els.appStatus.hidden = true;
+}
+
+function setButtonLoading(button, loading, loadingText) {
+  if (!button.dataset.label) button.dataset.label = button.textContent;
+  button.disabled = loading;
+  button.classList.toggle("loading", loading);
+  button.textContent = loading ? loadingText : button.dataset.label;
+}
+
+function setAuthLoading(loading) {
+  setButtonLoading(els.authSubmit, loading, authMode === "signup" ? "Creating..." : "Signing in...");
+  els.authToggle.disabled = loading;
+  els.usernameInput.disabled = loading;
+  els.passwordInput.disabled = loading;
 }
 
 function setAuthMode(mode) {
@@ -74,8 +100,8 @@ function setAuthMode(mode) {
   const signingUp = mode === "signup";
   els.authTitle.textContent = signingUp ? "Create account" : "Welcome back";
   els.authSubmit.textContent = signingUp ? "Sign up" : "Sign in";
+  els.authSubmit.dataset.label = els.authSubmit.textContent;
   els.authToggle.textContent = signingUp ? "Already have an account? Sign in" : "Need an account? Sign up";
-  els.usernameField.hidden = !signingUp;
   els.authError.textContent = "";
 }
 
@@ -197,7 +223,7 @@ function chatSubtitle(chat) {
 
 function renderMe() {
   els.meName.textContent = state.profile?.username || "User";
-  els.meEmail.textContent = state.profile?.email || "";
+  els.meHandle.textContent = `@${state.profile?.username || "user"}`;
 }
 
 function renderFriends() {
@@ -215,7 +241,7 @@ function renderFriends() {
     row.className = "person-row";
     row.innerHTML = `<span class="avatar">${initials(friend.username)}</span><span><strong></strong><small></small></span>`;
     row.querySelector("strong").textContent = friend.username;
-    row.querySelector("small").textContent = friend.email;
+    row.querySelector("small").textContent = "Open DM";
     row.addEventListener("click", () => openDm(friend));
     els.friendList.append(row);
   }
@@ -323,11 +349,11 @@ async function selectConversation(id) {
 }
 
 async function findProfile(identifier) {
-  const needle = text(identifier).toLowerCase();
+  const needle = slug(identifier);
   const { data, error } = await supabase
     .from("profiles")
     .select("*")
-    .or(`email.eq.${needle},username.eq.${needle}`)
+    .eq("username", needle)
     .neq("id", state.user.id)
     .maybeSingle();
 
@@ -337,7 +363,7 @@ async function findProfile(identifier) {
 
 async function addFriend(identifier) {
   const profile = await findProfile(identifier);
-  if (!profile) throw new Error("No user found with that username or email.");
+  if (!profile) throw new Error("No user found with that username.");
 
   const smaller = [state.user.id, profile.id].sort();
   const { error } = await supabase.from("friendships").upsert(
@@ -521,6 +547,7 @@ async function handleSignal(signal) {
 
 async function joinCall() {
   if (!state.activeConversationId || state.callActive) return;
+  setCallStatus("Starting voice...");
   state.localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
   state.callActive = true;
   setCallStatus("In voice", true);
@@ -560,55 +587,81 @@ els.authForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   els.authError.textContent = "";
 
-  const email = text(els.emailInput.value).toLowerCase();
-  const password = els.passwordInput.value;
   const username = slug(els.usernameInput.value);
+  const email = authEmailFor(username);
+  const password = els.passwordInput.value;
 
   try {
+    if (!username) throw new Error("Use letters, numbers, or underscores for your username.");
+    setAuthLoading(true);
+    showStatus(authMode === "signup" ? "Creating your account..." : "Signing you in...");
     if (authMode === "signup") {
-      if (!username) throw new Error("Choose a username.");
       localStorage.setItem("minicord_signup_username", username);
-      const { error } = await supabase.auth.signUp({ email, password, options: { data: { username } } });
+      const { data, error } = await supabase.auth.signUp({ email, password, options: { data: { username } } });
       if (error) throw error;
+      if (!data.session) {
+        throw new Error("Signup needs Supabase email confirmation turned off because this app uses username login.");
+      }
     } else {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
     }
   } catch (error) {
     els.authError.textContent = error.message;
+  } finally {
+    setAuthLoading(false);
+    hideStatus();
   }
 });
 
 els.signOutButton.addEventListener("click", async () => {
-  await leaveCall();
-  await supabase.auth.signOut();
+  setButtonLoading(els.signOutButton, true, "Signing out...");
+  showStatus("Signing out...");
+  try {
+    await leaveCall();
+    await supabase.auth.signOut();
+  } finally {
+    setButtonLoading(els.signOutButton, false);
+    hideStatus();
+  }
 });
 
 els.friendForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   const value = els.friendInput.value;
+  const button = els.friendForm.querySelector("button");
   els.friendInput.value = "";
   try {
+    setButtonLoading(button, true, "Adding...");
+    showStatus("Adding friend...");
     await addFriend(value);
   } catch (error) {
     alert(error.message);
+  } finally {
+    setButtonLoading(button, false);
+    hideStatus();
   }
 });
 
 els.messageForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   const body = els.messageInput.value;
+  const button = els.messageForm.querySelector("button");
   els.messageInput.value = "";
   try {
+    setButtonLoading(button, true, "Sending...");
     await sendMessage(body);
   } catch (error) {
     els.messageInput.value = body;
     alert(error.message);
+  } finally {
+    setButtonLoading(button, false);
   }
 });
 
 els.callButton.addEventListener("click", async () => {
   try {
+    setButtonLoading(els.callButton, true, state.callActive ? "Leaving..." : "Joining...");
     if (state.callActive) {
       await leaveCall();
     } else {
@@ -617,6 +670,9 @@ els.callButton.addEventListener("click", async () => {
   } catch (error) {
     alert(`Voice failed: ${error.message}`);
     await leaveCall();
+  } finally {
+    setButtonLoading(els.callButton, false);
+    setCallStatus(state.callActive ? "In voice" : "Not in voice", state.callActive);
   }
 });
 
@@ -629,11 +685,17 @@ els.groupButton.addEventListener("click", () => {
 els.groupForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   const selected = [...els.groupFriends.querySelectorAll("input:checked")].map((input) => input.value);
+  const button = els.groupForm.querySelector("button[value='default']");
   try {
+    setButtonLoading(button, true, "Creating...");
+    showStatus("Creating group...");
     await createGroup(text(els.groupNameInput.value) || "Group chat", selected);
     els.groupDialog.close();
   } catch (error) {
     alert(error.message);
+  } finally {
+    setButtonLoading(button, false);
+    hideStatus();
   }
 });
 
@@ -647,11 +709,14 @@ supabase.auth.onAuthStateChange(async (_event, session) => {
   }
 
   try {
+    showStatus("Loading your chats...");
     showApp();
     await ensureProfile();
     await refreshAll();
     subscribeToLists();
+    hideStatus();
   } catch (error) {
+    hideStatus();
     showAuth(error.message);
   }
 });
