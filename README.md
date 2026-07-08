@@ -1,6 +1,6 @@
 # MiniCord
 
-A tiny Discord-style web app with servers, text channels, realtime messages, and display names.
+A tiny Discord-style web app with accounts, friends, DMs, group chats, realtime messages, and browser voice calls.
 
 ## Run it
 
@@ -18,4 +18,4 @@ Import this repository in Vercel as a static project.
 
 ## Notes
 
-This is intentionally simple. It uses public Supabase row policies so anyone with the app can create servers, channels, and messages. For a private production app, add real authentication and stricter policies.
+Voice calls use browser microphone access and WebRTC. They need HTTPS, so they work best on the Vercel deployment. Supabase is used for auth, data, realtime messages, and voice-call signaling.

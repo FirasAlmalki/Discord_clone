@@ -7,99 +7,98 @@
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
-    <div class="app-shell">
-      <aside class="servers-panel">
-        <button class="brand-server" id="homeButton" title="Home" aria-label="Home">M</button>
-        <div class="server-divider"></div>
-        <div class="server-list" id="serverList"></div>
-        <button class="round-action" id="newServerButton" title="Create server" aria-label="Create server">+</button>
-      </aside>
-
-      <aside class="channels-panel">
-        <div class="server-header">
-          <div>
-            <p class="eyebrow">Server</p>
-            <h1 id="serverName">MiniCord</h1>
-          </div>
-          <button class="icon-button" id="newChannelButton" title="Create channel" aria-label="Create channel">+</button>
+    <main class="auth-view" id="authView">
+      <section class="auth-panel">
+        <div>
+          <p class="eyebrow">MiniCord</p>
+          <h1 id="authTitle">Welcome back</h1>
         </div>
 
-        <section class="panel-section">
-          <p class="section-label">Text channels</p>
-          <div class="channel-list" id="channelList"></div>
+        <form class="auth-form" id="authForm">
+          <label>
+            <span>Email</span>
+            <input id="emailInput" type="email" autocomplete="email" required />
+          </label>
+          <label>
+            <span>Password</span>
+            <input id="passwordInput" type="password" autocomplete="current-password" minlength="6" required />
+          </label>
+          <label id="usernameField" hidden>
+            <span>Username</span>
+            <input id="usernameInput" autocomplete="username" maxlength="24" />
+          </label>
+          <p class="error-text" id="authError"></p>
+          <button type="submit" id="authSubmit">Sign in</button>
+          <button class="link-button" type="button" id="authToggle">Need an account? Sign up</button>
+        </form>
+      </section>
+    </main>
+
+    <div class="app-shell" id="appView" hidden>
+      <aside class="sidebar">
+        <div class="me-card">
+          <div class="avatar big">M</div>
+          <div>
+            <strong id="meName">User</strong>
+            <small id="meEmail"></small>
+          </div>
+          <button id="signOutButton">Sign out</button>
+        </div>
+
+        <form class="add-friend" id="friendForm">
+          <input id="friendInput" placeholder="friend username or email" required />
+          <button type="submit">Add</button>
+        </form>
+
+        <section class="side-section">
+          <div class="section-head">
+            <p class="section-label">Friends</p>
+          </div>
+          <div class="stack-list" id="friendList"></div>
         </section>
 
-        <div class="user-card">
-          <div class="avatar" id="userAvatar">?</div>
-          <div>
-            <p id="currentUsername">Guest</p>
-            <button class="link-button" id="changeNameButton">change name</button>
+        <section class="side-section grow">
+          <div class="section-head">
+            <p class="section-label">Chats</p>
+            <button class="small-button" id="groupButton" type="button">Group</button>
           </div>
-        </div>
+          <div class="stack-list" id="chatList"></div>
+        </section>
       </aside>
 
       <main class="chat-panel">
         <header class="chat-header">
           <div>
-            <p class="eyebrow">Channel</p>
-            <h2 id="channelName"># welcome</h2>
+            <p class="eyebrow">Chat</p>
+            <h1 id="chatTitle">Choose a chat</h1>
+            <p id="chatSubtitle">Add a friend or create a group to begin.</p>
           </div>
-          <div class="status-pill" id="connectionStatus">Connecting</div>
+          <div class="voice-tools">
+            <span id="callStatus">Not in voice</span>
+            <button id="callButton" type="button">Voice call</button>
+          </div>
         </header>
 
-        <section class="empty-state" id="emptyState">
-          <h2>Pick or create a server</h2>
-          <p>Start a small community, add rooms, and chat in realtime.</p>
-        </section>
-
-        <section class="messages" id="messageList" aria-live="polite"></section>
+        <section class="messages" id="messages"></section>
 
         <form class="composer" id="messageForm">
-          <input id="messageInput" autocomplete="off" maxlength="1000" placeholder="Message #welcome" />
+          <input id="messageInput" autocomplete="off" maxlength="1000" placeholder="Write a message" />
           <button type="submit">Send</button>
         </form>
       </main>
     </div>
 
-    <dialog id="nameDialog">
-      <form method="dialog" class="dialog-body" id="nameForm">
-        <h2>Choose a display name</h2>
-        <input id="nameInput" maxlength="24" placeholder="your name" required />
-        <div class="dialog-actions">
-          <button value="cancel" class="secondary-button">Cancel</button>
-          <button value="default">Continue</button>
-        </div>
-      </form>
-    </dialog>
-
-    <dialog id="serverDialog">
-      <form method="dialog" class="dialog-body" id="serverForm">
-        <h2>Create server</h2>
-        <input id="serverInput" maxlength="32" placeholder="server name" required />
+    <dialog id="groupDialog">
+      <form method="dialog" class="dialog-body" id="groupForm">
+        <h2>Create group</h2>
+        <input id="groupNameInput" maxlength="32" placeholder="group name" />
+        <div class="check-list" id="groupFriends"></div>
         <div class="dialog-actions">
           <button value="cancel" class="secondary-button">Cancel</button>
           <button value="default">Create</button>
         </div>
       </form>
     </dialog>
-
-    <dialog id="channelDialog">
-      <form method="dialog" class="dialog-body" id="channelForm">
-        <h2>Create channel</h2>
-        <input id="channelInput" maxlength="28" placeholder="channel name" required />
-        <div class="dialog-actions">
-          <button value="cancel" class="secondary-button">Cancel</button>
-          <button value="default">Create</button>
-        </div>
-      </form>
-    </dialog>
-
-    <template id="setupTemplate">
-      <div class="setup-warning">
-        <strong>Supabase needs its tables first.</strong>
-        <span>Open <code>supabase-schema.sql</code> in this folder, paste it into the Supabase SQL editor, run it, then refresh.</span>
-      </div>
-    </template>
 
     <script type="module" src="./app.js"></script>
   </body>
