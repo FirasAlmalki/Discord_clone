@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MiniCord</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="servers-panel">
+        <button class="brand-server" id="homeButton" title="Home" aria-label="Home">M</button>
+        <div class="server-divider"></div>
+        <div class="server-list" id="serverList"></div>
+        <button class="round-action" id="newServerButton" title="Create server" aria-label="Create server">+</button>
+      </aside>
+
+      <aside class="channels-panel">
+        <div class="server-header">
+          <div>
+            <p class="eyebrow">Server</p>
+            <h1 id="serverName">MiniCord</h1>
+          </div>
+          <button class="icon-button" id="newChannelButton" title="Create channel" aria-label="Create channel">+</button>
+        </div>
+
+        <section class="panel-section">
+          <p class="section-label">Text channels</p>
+          <div class="channel-list" id="channelList"></div>
+        </section>
+
+        <div class="user-card">
+          <div class="avatar" id="userAvatar">?</div>
+          <div>
+            <p id="currentUsername">Guest</p>
+            <button class="link-button" id="changeNameButton">change name</button>
+          </div>
+        </div>
+      </aside>
+
+      <main class="chat-panel">
+        <header class="chat-header">
+          <div>
+            <p class="eyebrow">Channel</p>
+            <h2 id="channelName"># welcome</h2>
+          </div>
+          <div class="status-pill" id="connectionStatus">Connecting</div>
+        </header>
+
+        <section class="empty-state" id="emptyState">
+          <h2>Pick or create a server</h2>
+          <p>Start a small community, add rooms, and chat in realtime.</p>
+        </section>
+
+        <section class="messages" id="messageList" aria-live="polite"></section>
+
+        <form class="composer" id="messageForm">
+          <input id="messageInput" autocomplete="off" maxlength="1000" placeholder="Message #welcome" />
+          <button type="submit">Send</button>
+        </form>
+      </main>
+    </div>
+
+    <dialog id="nameDialog">
+      <form method="dialog" class="dialog-body" id="nameForm">
+        <h2>Choose a display name</h2>
+        <input id="nameInput" maxlength="24" placeholder="your name" required />
+        <div class="dialog-actions">
+          <button value="cancel" class="secondary-button">Cancel</button>
+          <button value="default">Continue</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="serverDialog">
+      <form method="dialog" class="dialog-body" id="serverForm">
+        <h2>Create server</h2>
+        <input id="serverInput" maxlength="32" placeholder="server name" required />
+        <div class="dialog-actions">
+          <button value="cancel" class="secondary-button">Cancel</button>
+          <button value="default">Create</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="channelDialog">
+      <form method="dialog" class="dialog-body" id="channelForm">
+        <h2>Create channel</h2>
+        <input id="channelInput" maxlength="28" placeholder="channel name" required />
+        <div class="dialog-actions">
+          <button value="cancel" class="secondary-button">Cancel</button>
+          <button value="default">Create</button>
+        </div>
+      </form>
+    </dialog>
+
+    <template id="setupTemplate">
+      <div class="setup-warning">
+        <strong>Supabase needs its tables first.</strong>
+        <span>Open <code>supabase-schema.sql</code> in this folder, paste it into the Supabase SQL editor, run it, then refresh.</span>
+      </div>
+    </template>
+
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>
