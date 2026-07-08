@@ -10,11 +10,11 @@ A tiny Discord-style web app with accounts, friends, DMs, group chats, realtime 
 
 ## Deploy to Vercel
 
-Import this repository in Vercel as a static project.
+Import this repository in Vercel. It builds into a static `dist` folder.
 
-- Build command: leave empty
-- Output directory: leave empty or use `.`
-- Install command: leave empty
+- Build command: `npm run build`
+- Output directory: `dist`
+- Install command: `npm install`
 
 ## Notes
 
